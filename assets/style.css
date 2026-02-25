@@ -1,0 +1,123 @@
+/* --- STYLE.CSS --- */
+
+/* Importation de la police Google Fonts (Roboto) */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+
+/* Application globale de la police */
+html, body, [class*="css"] {
+    font-family: 'Roboto', sans-serif;
+    color: #343a40;
+}
+
+/* --- SIDEBAR (Navigation) --- */
+[data-testid="stSidebar"] {
+    border-right: 1px solid ;
+    padding-top: 2rem;
+}
+
+/* Boutons de navigation (Radio buttons transformés) */
+div[role="radiogroup"] > label {
+    display: block;
+    background-color: #007bff;
+    border: 1px solid #007bff;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    padding: 12px 20px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    font-weight: 500;
+    display: flex;
+}
+
+div[role="radiogroup"] > label:hover {
+    transform: translateX(5px);
+}
+
+/* État sélectionné */
+div[role="radiogroup"] > label[data-checked="true"] {
+    background-color: #007bff !important;
+    color: white !important;
+    border-color: #007bff;
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(0,123,255,0.3);
+}
+
+/* --- TITRES --- */
+h1 {
+    color: #007bff;
+    text-align: center;
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+h2, h3 {
+    /* color: #343a40; */
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 10px;
+    margin-top: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+/* --- BOUTONS D'ACTION (Verts) --- */
+.stButton > button {
+    background-color: #28a745; /* Vert succès */
+    color: white;
+    border-radius: 25px;
+    padding: 0.6rem 1.5rem;
+    font-weight: 600;
+    border: none;
+    transition: all 0.3s ease;
+    width: 100%; /* Pleine largeur */
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stButton > button:hover {
+    background-color: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+/* --- CARTES / METRICS (Dashboard) --- */
+[data-testid="stMetric"] {
+    
+    border: 1px solid #007bff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+[data-testid="stMetric"]:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+}
+
+[data-testid="stMetricLabel"] {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+[data-testid="stMetricValue"] {
+    font-size: 2rem;
+    color: #007bff;
+    font-weight: 800;
+}
+
+/* --- TABLEAUX --- */
+[data-testid="stDataFrame"] {
+    border: 1px solid #007bff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* --- ALERTS --- */
+.stAlert {
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}

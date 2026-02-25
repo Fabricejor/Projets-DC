@@ -1,119 +1,85 @@
 import streamlit as st
-import pandas as pd
-from database import create_tables, get_db_connection
-from scraper import scrape_all_categories
+from database import create_tables
 
-# Initialisation de la base de données au démarrage
-create_tables()
+# Importation des vues
+from views.scraper_view import show_scraper_page
+from views.upload_view import show_upload_page
+from views.dashboard_view import show_dashboard_page
+from views.evaluation_view import show_evaluation_page
 
-st.set_page_config(page_title="CoinAfrique Scraper", layout="wide")
+# --- CONFIGURATION PAGE ---
+# set_page_config doit être la PREMIÈRE commande Streamlit
+st.set_page_config(
+    page_title="CoinAfrique Scraper",
+    page_icon="🛍️",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-st.title("Projet 2 : CoinAfrique Scraper 🛍️")
+# --- CHARGEMENT DU CSS ---
+def local_css(file_name):
+    try:
+        with open(file_name) as f:
+            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+    except FileNotFoundError:
+        st.warning("Fichier CSS non trouvé. Le style par défaut sera utilisé.")
 
-# Sidebar
-st.sidebar.header("Menu")
-menu = ["Scraper", "Télécharger Données", "Dashboard", "Évaluation"]
-choice = st.sidebar.selectbox("Choisissez une option", menu)
+local_css("assets/style.css")
 
-# --- FONCTIONS UTILITAIRES ---
-def load_data():
-    """Charge les données depuis la base de données"""
-    conn = get_db_connection()
-    if conn:
-        query = "SELECT * FROM coinafrique_items"
-        df = pd.read_sql(query, conn)
-        conn.close()
-        return df
-    return pd.DataFrame()
+# --- INITIALISATION ---
+@st.cache_resource
+def init_db():
+    create_tables()
 
-# --- PAGES ---
+init_db()
 
-if choice == "Scraper":
-    st.subheader("Scraper les données en direct")
-    st.markdown("""
-    Cette section permet de lancer le robot de collecte sur les 4 catégories :
-    - Vêtements Homme
-    - Chaussures Homme
-    - Vêtements Enfants
-    - Chaussures Enfants
-    """)
+# --- HEADER (En-tête principal) ---
+# On utilise du HTML brut pour un design plus poussé
+st.markdown("""
+    <div style="text-align: center; padding: 2rem; background: linear-gradient(90deg, #007bff 0%, #00d2ff 100%); border-radius: 15px; margin-bottom: 2rem; color: white; box-shadow: 0 4px 15px rgba(0,123,255,0.3);">
+        <h1 style="color: white; margin: 0; font-size: 3rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">🛍️ CoinAfrique Scraper</h1>
+        <p style="color: rgba(255,255,255,0.9); font-size: 1.2rem; margin-top: 10px;">Analysez le marché de l'occasion au Sénégal en un clic</p>
+    </div>
+""", unsafe_allow_html=True)
+
+# --- NAVIGATION (SIDEBAR) ---
+with st.sidebar:
+    # Logo ou Image
+    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/1200px-Python-logo-notext.svg.png", width=60)
     
-    nb_pages = st.slider("Nombre de pages à scraper par catégorie", min_value=1, max_value=5, value=1)
+    st.markdown("### 🧭 Navigation")
     
-    if st.button("Lancer le Scraping 🚀"):
-        with st.spinner('Le robot est au travail... Veuillez patienter.'):
-            # On lance le scraping
-            try:
-                # On utilise une fonction wrapper pour capturer la sortie ou juste lancer
-                # Ici on appelle directement la fonction importée
-                scrape_all_categories(max_pages_per_category=nb_pages)
-                st.success("Scraping terminé avec succès !")
-                st.balloons()
-            except Exception as e:
-                st.error(f"Une erreur est survenue : {e}")
-        
+    # Menu principal (Radio buttons stylisés par CSS)
+    choice = st.radio(
+        "Menu",
+        ["Scraper", "Télécharger Données", "Dashboard", "Évaluation"],
+        label_visibility="collapsed"
+    )
+    
     st.divider()
-    st.write("### Aperçu des données actuelles en base")
-    df = load_data()
-    if not df.empty:
-        st.dataframe(df.tail(10)) # Affiche les 10 derniers éléments
-        st.write(f"Total d'annonces en base : **{len(df)}**")
-    else:
-        st.info("La base de données est vide pour le moment.")
-
-
-elif choice == "Télécharger Données":
-    st.subheader("Télécharger des données brutes (Web Scraper)")
-    st.info("Fonctionnalité à venir : Upload de fichier CSV issu de l'extension Web Scraper.")
     
-    uploaded_file = st.file_uploader("Choisir un fichier CSV", type="csv")
-    if uploaded_file is not None:
-        try:
-            df_upload = pd.read_csv(uploaded_file)
-            st.write("Aperçu du fichier :")
-            st.dataframe(df_upload.head())
-            # Ici on pourrait ajouter la logique pour nettoyer et insérer en base
-        except Exception as e:
-            st.error(f"Erreur de lecture du fichier : {e}")
-
-elif choice == "Dashboard":
-    st.subheader("Tableau de bord des données 📊")
+    # Section Info
+    st.info("💡 **Astuce :** Utilisez le menu pour naviguer entre les fonctionnalités.")
     
-    df = load_data()
-    
-    if not df.empty:
-        # Conversion des prix en numérique si ce n'est pas déjà le cas (pandas le fait souvent auto via read_sql mais on assure)
-        df['price'] = pd.to_numeric(df['price'], errors='coerce')
-        
-        # Métriques principales
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Total Annonces", len(df))
-        col2.metric("Prix Moyen", f"{int(df['price'].mean()):,} CFA")
-        col3.metric("Catégories", df['category'].nunique())
-        
-        st.divider()
-        
-        # Graphiques
-        col_chart1, col_chart2 = st.columns(2)
-        
-        with col_chart1:
-            st.write("### Répartition par Catégorie")
-            st.bar_chart(df['category'].value_counts())
-            
-        with col_chart2:
-            st.write("### Top 10 des Adresses")
-            st.bar_chart(df['address'].value_counts().head(10))
-            
-        st.write("### Données détaillées")
-        st.dataframe(df)
-        
-    else:
-        st.warning("Aucune donnée à afficher. Lancez d'abord le scraping !")
-
-elif choice == "Évaluation":
-    st.subheader("Évaluation de l'application")
+    # Pied de page sidebar
     st.markdown("""
-    Merci d'utiliser notre application ! Votre avis compte.
-    
-    👉 [Cliquez ici pour remplir le formulaire d'évaluation](https://docs.google.com/forms/d/e/1FAIpQLSdtNF46c-avvx4SnWwlrVxYN4z_Gap6Y7PK8hv8MdXM9o-nzA/viewform?usp=publish-editor)
-    """)
+        <div style="position: fixed; bottom: 0; padding: 10px; font-size: 0.8rem; color: #6c757d;">
+            Projet Data Collection 2026<br>
+            Master DIT - IA
+        </div>
+    """, unsafe_allow_html=True)
+
+# --- ROUTAGE ---
+# On enveloppe le contenu dans un conteneur pour le centrer ou l'espacer si besoin
+with st.container():
+    if choice == "Scraper":
+        show_scraper_page()
+
+    elif choice == "Télécharger Données":
+        show_upload_page()
+
+    elif choice == "Dashboard":
+        show_dashboard_page()
+
+    elif choice == "Évaluation":
+        show_evaluation_page()
